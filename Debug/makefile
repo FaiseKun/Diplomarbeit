@@ -75,8 +75,8 @@ all: main-build
 main-build: DiplomArbeitTest.elf secondary-outputs
 
 # Tool invocations
-DiplomArbeitTest.elf DiplomArbeitTest.map: $(OBJS) $(USER_OBJS) D:\STM32CubeIDE_1.10.1\DiplomArbeitTest\STM32G441KBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-g++ -o "DiplomArbeitTest.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\STM32CubeIDE_1.10.1\DiplomArbeitTest\STM32G441KBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="DiplomArbeitTest.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
+DiplomArbeitTest.elf DiplomArbeitTest.map: $(OBJS) $(USER_OBJS) D:\STM32CubeIDE_1.10.1\DiplomArbeitTest\Diplomarbeit\STM32G441KBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-g++ -o "DiplomArbeitTest.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"D:\STM32CubeIDE_1.10.1\DiplomArbeitTest\Diplomarbeit\STM32G441KBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="DiplomArbeitTest.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
