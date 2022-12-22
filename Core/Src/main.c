@@ -213,13 +213,20 @@ int main(void)
 
 	  //c++;
 
-	  uint32_t Bitch;
-		//snprintf(Bitch,40,"X:%f\n",MPU6050[0].KalmanAngleX);
-	    Bitch = (uint32_t) MPU6050[0].KalmanAngleX;
-	  	HAL_UART_Transmit(&huart2,Bitch,sizeof(Bitch),30);// Sending in normal mode
+	  //HAL_UART_Receive (&huart2, Rx_data, 4, 1000);
+
+	  //snprintf(Bitch,40,"X:%f\n",MPU6050[0].KalmanAngleX);
+	    //Bitch = (uint32_t) MPU6050[0].KalmanAngleX;
+	  	char Bitch[sizeof(float)];
+	    memcpy(Bitch,&MPU6050[0].KalmanAngleX,sizeof(float));
+	  	HAL_UART_Transmit(&huart2,Bitch,sizeof(float),30);// Sending in normal mode
+
+	  	memcpy(Bitch,&MPU6050[0].KalmanAngleY,sizeof(float));
+	  	HAL_UART_Transmit(&huart2,Bitch,sizeof(float),30);// Sending in normal mode
+
 	  	//snprintf(Bitch,40,"Y:%f\n",MPU6050[0].KalmanAngleY);
-	  	Bitch = (uint32_t) MPU6050[0].KalmanAngleY;
-	  	HAL_UART_Transmit(&huart2,Bitch,sizeof(Bitch),30);// Sending in normal mode
+	  	//Bitch = (uint32_t) MPU6050[0].KalmanAngleY;
+	  	//HAL_UART_Transmit(&huart2,Bitch,sizeof(Bitch),30);// Sending in normal mode
 
 	  //uint8_t test[] = "Hello";
 	  //HAL_UART_Transmit(&huart2,test,sizeof(test),30);

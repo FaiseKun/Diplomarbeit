@@ -33,8 +33,8 @@ typedef struct
 
     float Temperature;
 
-    double KalmanAngleX;
-    double KalmanAngleY;
+    float KalmanAngleX;
+    float KalmanAngleY;
 } MPU6050_t;
 
 // Kalman structure
