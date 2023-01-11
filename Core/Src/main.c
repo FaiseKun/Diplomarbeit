@@ -149,6 +149,10 @@ void WriteToShiftRegInvers(uint8_t value, uint8_t value2)
 /* USER CODE BEGIN 0 */
 #define MPU_COUNT 1
 MPU6050_t MPU6050[MPU_COUNT];
+int MPU_INITIALIZE_COUNT = 0;
+
+// Uart Rx Data Container
+uint8_t RXData[12] = {0};
 /* USER CODE END 0 */
 
 /**
@@ -182,7 +186,6 @@ int main(void)
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
-
   for(int i = 0; i < MPU_COUNT; i++)
   {
 	  WriteToShiftRegInvers(255,pow(2,i));
@@ -192,8 +195,8 @@ int main(void)
 		  WriteToShiftRegInvers(255,0);
 		  HAL_Delay(10);
 	  }
+	  MPU_INITIALIZE_COUNT++;
    }
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -211,25 +214,19 @@ int main(void)
 	  WriteToShiftRegInvers(255,254);
 	  HAL_Delay(100);
 
-	  //c++;
+      char buffer[sizeof(float)];
+	  memcpy(buffer,&MPU6050[0].KalmanAngleX,sizeof(float));
+	  HAL_UART_Transmit(&huart2,buffer,sizeof(float),30);// Sending in normal mode
 
-	  //HAL_UART_Receive (&huart2, Rx_data, 4, 1000);
-
-	  //snprintf(Bitch,40,"X:%f\n",MPU6050[0].KalmanAngleX);
-	    //Bitch = (uint32_t) MPU6050[0].KalmanAngleX;
-	  	char Bitch[sizeof(float)];
-	    memcpy(Bitch,&MPU6050[0].KalmanAngleX,sizeof(float));
-	  	HAL_UART_Transmit(&huart2,Bitch,sizeof(float),30);// Sending in normal mode
-
-	  	memcpy(Bitch,&MPU6050[0].KalmanAngleY,sizeof(float));
-	  	HAL_UART_Transmit(&huart2,Bitch,sizeof(float),30);// Sending in normal mode
-
-	  	//snprintf(Bitch,40,"Y:%f\n",MPU6050[0].KalmanAngleY);
-	  	//Bitch = (uint32_t) MPU6050[0].KalmanAngleY;
-	  	//HAL_UART_Transmit(&huart2,Bitch,sizeof(Bitch),30);// Sending in normal mode
+	  memcpy(buffer,&MPU6050[0].KalmanAngleY,sizeof(float));
+	  HAL_UART_Transmit(&huart2,buffer,sizeof(float),30);// Sending in normal mode
 
 	  //uint8_t test[] = "Hello";
 	  //HAL_UART_Transmit(&huart2,test,sizeof(test),30);
+
+	  // Receive Data from PC
+	  HAL_UART_Receive(&huart2,&RXData,12,500);
+
 	  HAL_Delay(100);
 
 	  //for(uint8_t i = 0; i  < 256; i++)
