@@ -1,13 +1,5 @@
 /*
  * mpu6050.c
- *
- *  Created on: Nov 13, 2019
- *      Author: Bulanov Konstantin
- *
- *  Contact information
- *  -------------------
- *
- * e-mail   :  leech001@gmail.com
  */
 
 /*
