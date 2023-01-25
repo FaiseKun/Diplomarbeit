@@ -49,6 +49,7 @@ TIM_HandleTypeDef htim1;
 TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart2;
+DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
 #define MPU_COUNT 1
@@ -57,6 +58,7 @@ UART_HandleTypeDef huart2;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_DMA_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_USART2_UART_Init(void);
@@ -173,8 +175,9 @@ MPU6050_t MPU6050[MPU_COUNT];
 int MPU_INITIALIZE_COUNT = 0;
 
 // Uart Rx Data Container
-uint8_t RXData[6] = {0};
-uint8_t Check = 0;
+uint8_t RXData;
+uint8_t ServoData[5] = {0};
+uint8_t RX_Counter = 0;
 /* USER CODE END 0 */
 
 /**
@@ -204,22 +207,31 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM1_Init();
   MX_I2C1_Init();
   MX_USART2_UART_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
+  // Initialize all MPU max 16
   for(int i = 0; i < MPU_COUNT; i++)
   	  {
-  		  WriteToShiftRegInvers(255,pow(2,i));
+	  	  	  if(i < 8)
+	  		  {
+	  			  WriteToShiftRegInvers(255,pow(2,i));
+	  			  while(MPU6050_Init(&hi2c1))
+	  			  {
+	  			  }
+	  			  MPU_INITIALIZE_COUNT++;
+	  		  }else{
+	  			  WriteToShiftRegInvers(pow(2,i),255);
+	  			  while(MPU6050_Init(&hi2c1))
+	  			  {
+	  			  }
+	  			  MPU_INITIALIZE_COUNT++;
+	  		  }
 
-  		  while (MPU6050_Init(&hi2c1) != 0)
-  		  {
-  			  WriteToShiftRegInvers(255,0);
-  			  HAL_Delay(10);
-  		  }
-  		  MPU_INITIALIZE_COUNT++;
   	   }
 
   // Initialize PWM For Servo
@@ -241,29 +253,52 @@ int main(void)
 
   while (1)
   {
-	  // Read all MPU
+	  // Read all MPU, max 16
 
 	  for(int i = 0; i < MPU_COUNT; i++)
 	  {
-		  WriteToShiftRegInvers(255,pow(2,i));
-		  MPU6050_Read_All(&hi2c1, &MPU6050[i]);
+		  if(i < 8)
+		  {
+			  WriteToShiftRegInvers(255,pow(2,i));
+			  MPU6050_Read_All(&hi2c1, &MPU6050[i]);
+		  }else{
+			  WriteToShiftRegInvers(pow(2,i),255);
+			  MPU6050_Read_All(&hi2c1, &MPU6050[i]);
+		  }
 	  }
 	  WriteToShiftRegInvers(255,254);
 
+	  // Send Data to PC
       char buffer[sizeof(float)];
 	  memcpy(buffer,&MPU6050[0].KalmanAngleX,sizeof(float));
-	  HAL_UART_Transmit(&huart2,buffer,sizeof(float),30);// Sending in normal mode
+	  HAL_UART_Transmit(&huart2,buffer,sizeof(float),10);// Sending in normal mode
 
 	  memcpy(buffer,&MPU6050[0].KalmanAngleY,sizeof(float));
-	  HAL_UART_Transmit(&huart2,buffer,sizeof(float),30);// Sending in normal mode
+	  HAL_UART_Transmit(&huart2,buffer,sizeof(float),10);// Sending in normal mode
 
-	  // Receive Data from PC
-      HAL_UART_Receive(&huart2,&RXData,1,0);
-
-      if(RXData[0] == 1)
+	  // Receive Data from PC		One number at a Time : 10 then send 20 then send 30 then send 40 then send 50
+      if(HAL_UART_Receive_DMA(&huart2,&RXData,1) == HAL_OK)
       {
-    	  HAL_UART_Receive(&huart2,&RXData,6,500);
+    	  //Update Servo from Degrees to DutyCycle
+    	  if(RXData != 255) // 255 = Free Rotation of Servo
+    	  {
+    		  if(RXData <= 180 && RXData >= 0 )
+    		  {
+    			  ServoData[RX_Counter] = MAP(RXData,0,180,25,125); // Remap from Degrees to Duty Cycle
+    		  }
+    	  }
+    	  else
+    	  {
+    	      	ServoData[RX_Counter] = 0;
+    	  }
+
+    	  //RX_Counter++;
+    	  if(RX_Counter >= 5)
+    		  RX_Counter = 0;
       }
+      __HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
+
+
 
 	  //for(uint8_t i = 0; i  < 256; i++)
 	  //{
@@ -271,13 +306,12 @@ int main(void)
 	  //	  HAL_Delay(50);
 	  //}
 
-      Check++;
-
-      htim1.Instance->CCR1 = RXData[1];
-      htim1.Instance->CCR2 = RXData[2];
-      htim1.Instance->CCR3 = RXData[3];
-      htim1.Instance->CCR4 = RXData[4];
-      htim4.Instance->CCR2 = RXData[5];
+      // Write Servo Duty Cycles
+      htim1.Instance->CCR1 = ServoData[0];
+      htim1.Instance->CCR2 = ServoData[1];
+      htim1.Instance->CCR3 = ServoData[2];
+      htim1.Instance->CCR4 = ServoData[3];
+      htim4.Instance->CCR2 = ServoData[4];
 
       /*
 	  htim1.Instance->CCR1 = 25;  // duty cycle is .5 ms 0Degrees
@@ -562,7 +596,7 @@ static void MX_USART2_UART_Init(void)
 
   /* USER CODE END USART2_Init 1 */
   huart2.Instance = USART2;
-  huart2.Init.BaudRate = 115200;
+  huart2.Init.BaudRate = 576000;
   huart2.Init.WordLength = UART_WORDLENGTH_8B;
   huart2.Init.StopBits = UART_STOPBITS_1;
   huart2.Init.Parity = UART_PARITY_NONE;
@@ -591,6 +625,23 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
+
+}
+
+/**
+  * Enable DMA controller clock
+  */
+static void MX_DMA_Init(void)
+{
+
+  /* DMA controller clock enable */
+  __HAL_RCC_DMAMUX1_CLK_ENABLE();
+  __HAL_RCC_DMA1_CLK_ENABLE();
+
+  /* DMA interrupt init */
+  /* DMA1_Channel1_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 }
 
