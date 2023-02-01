@@ -39,22 +39,26 @@
 
 // Setup MPU6050
 #define MPU6050_ADDR 0xD0
+
+#define alpha 0.98
+
 const uint16_t i2c_timeout = 100;
 const double Accel_Z_corrector = 14418.0;
 
 uint32_t timer;
 
+/*
 Kalman_t KalmanX = {
-    .Q_angle = 0.01f, // 0.001
-    .Q_bias = 0.03f,  // = 0.003
-    .R_measure = 0.01f}; // 0.03
+    .Q_angle = 0.001f, // 0.001
+    .Q_bias = 0.003f,  // = 0.003
+    .R_measure = 0.03f}; // 0.03
 
 Kalman_t KalmanY = {
-	.Q_angle = 0.01f, // 0.001
-	.Q_bias = 0.03f,  // = 0.003
-	.R_measure = 0.01f// 0.03
+	.Q_angle = 0.001f, // 0.001
+	.Q_bias = 0.003f,  // = 0.003
+	.R_measure = 0.03f// 0.03
 };
-
+*/
 
 uint8_t MPU6050_Init(I2C_HandleTypeDef *I2Cx)
 {
@@ -86,7 +90,7 @@ uint8_t MPU6050_Init(I2C_HandleTypeDef *I2Cx)
         // XG_ST=0,YG_ST=0,ZG_ST=0, FS_SEL=0 -> � 250 �/s
         Data = 0x00;
         HAL_I2C_Mem_Write(I2Cx, MPU6050_ADDR, GYRO_CONFIG_REG, 1, &Data, 1, i2c_timeout);
-        return 0;
+        return 1;
     }
     return check;
 }
@@ -190,16 +194,16 @@ void MPU6050_Read_All(I2C_HandleTypeDef *I2Cx, MPU6050_t *DataStruct)
     double pitch = atan2(-DataStruct->Accel_X_RAW, DataStruct->Accel_Z_RAW) * RAD_TO_DEG;
     if ((pitch < -90 && DataStruct->KalmanAngleY > 90) || (pitch > 90 && DataStruct->KalmanAngleY < -90))
     {
-        KalmanY.angle = pitch;
+        DataStruct->KalmanY.angle = pitch;
         DataStruct->KalmanAngleY = pitch;
     }
     else
     {
-        DataStruct->KalmanAngleY = Kalman_getAngle(&KalmanY, pitch, DataStruct->Gy, dt);
+        DataStruct->KalmanAngleY = Kalman_getAngle(&DataStruct->KalmanY, pitch, DataStruct->Gy, dt);
     }
     if (fabs(DataStruct->KalmanAngleY) > 90)
         DataStruct->Gx = -DataStruct->Gx;
-    DataStruct->KalmanAngleX = Kalman_getAngle(&KalmanX, roll, DataStruct->Gx, dt);
+    DataStruct->KalmanAngleX = Kalman_getAngle(&DataStruct->KalmanX, roll, DataStruct->Gx, dt);
 }
 
 double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt)
@@ -230,4 +234,4 @@ double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double
     Kalman->P[1][1] -= K[1] * P01_temp;
 
     return Kalman->angle;
-};
+}

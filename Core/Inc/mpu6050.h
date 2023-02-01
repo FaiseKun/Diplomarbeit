@@ -10,6 +10,17 @@
 #include <stdint.h>
 #include "main.h"
 
+// Kalman structure
+typedef struct
+{
+    double Q_angle;
+    double Q_bias;
+    double R_measure;
+    double angle;
+    double bias;
+    double P[2][2];
+} Kalman_t;
+
 // MPU6050 structure
 typedef struct
 {
@@ -32,18 +43,12 @@ typedef struct
 
     float KalmanAngleX;
     float KalmanAngleY;
+
+    Kalman_t KalmanX;
+    Kalman_t KalmanY;
 } MPU6050_t;
 
-// Kalman structure
-typedef struct
-{
-    double Q_angle;
-    double Q_bias;
-    double R_measure;
-    double angle;
-    double bias;
-    double P[2][2];
-} Kalman_t;
+
 
 uint8_t MPU6050_Init(I2C_HandleTypeDef *I2Cx);
 
