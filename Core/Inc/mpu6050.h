@@ -43,6 +43,7 @@ typedef struct
 
     float KalmanAngleX;
     float KalmanAngleY;
+    float KalmanAngleZ;
 
     Kalman_t KalmanX;
     Kalman_t KalmanY;

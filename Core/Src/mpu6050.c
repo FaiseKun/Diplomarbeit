@@ -90,9 +90,9 @@ uint8_t MPU6050_Init(I2C_HandleTypeDef *I2Cx)
         // XG_ST=0,YG_ST=0,ZG_ST=0, FS_SEL=0 -> � 250 �/s
         Data = 0x00;
         HAL_I2C_Mem_Write(I2Cx, MPU6050_ADDR, GYRO_CONFIG_REG, 1, &Data, 1, i2c_timeout);
-        return 1;
+        return 0;
     }
-    return check;
+    return -1;
 }
 
 void MPU6050_Read_Accel(I2C_HandleTypeDef *I2Cx, MPU6050_t *DataStruct)
@@ -204,6 +204,12 @@ void MPU6050_Read_All(I2C_HandleTypeDef *I2Cx, MPU6050_t *DataStruct)
     if (fabs(DataStruct->KalmanAngleY) > 90)
         DataStruct->Gx = -DataStruct->Gx;
     DataStruct->KalmanAngleX = Kalman_getAngle(&DataStruct->KalmanX, roll, DataStruct->Gx, dt);
+
+    // Yaw
+    double yaw_rate = DataStruct->Gz;
+    double raw_yaw = DataStruct->KalmanAngleZ + yaw_rate * dt;
+    double complementary_yaw = 0.98 * (DataStruct->KalmanAngleZ + yaw_rate * dt) + 0.02 * atan2(DataStruct->Accel_Y_RAW, DataStruct->Accel_X_RAW) * RAD_TO_DEG;
+    DataStruct->KalmanAngleZ = complementary_yaw;
 }
 
 double Kalman_getAngle(Kalman_t *Kalman, double newAngle, double newRate, double dt)

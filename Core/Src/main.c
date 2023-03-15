@@ -53,8 +53,9 @@ DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
 #define MPU_COUNT 2
-uint8_t Read = 0;
+uint8_t Read = -1;
 uint8_t Write = 1;
+uint8_t Overwrite = 1;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,111 +70,114 @@ static void MX_TIM4_Init(void);
 
 void WriteToShiftReg(uint8_t value, uint8_t value2)
 {
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET); // Latch LOW
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET); // Latch LOW
 
-	// Send Data
-	uint8_t mask = 0b10000000;
-	  for (int i = 0; i < 8; i++) {
-	    // Send one bit of data
-	    bool state = ((value & mask) > 0);
-	    if(state == 1)
-	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
-	    else
-	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
-	    // Pulse the CLOCK pin so that the shift register receives the bit of data
-	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
-	    //HAL_Delay (1);
-	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
-	    mask >>= 1;
-	  }
+  // Send Data
+  uint8_t mask = 0b10000000;
+  for (int i = 0; i < 8; i++)
+  {
+    // Send one bit of data
+    bool state = ((value & mask) > 0);
+    if (state == 1)
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
+    else
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
+    // Pulse the CLOCK pin so that the shift register receives the bit of data
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
+    //HAL_Delay (1);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
+    mask >>= 1;
+  }
 
-	  mask = 0b10000000;
-	  	  for (int i = 0; i < 8; i++) {
-	  	    // Send one bit of data
-	  	    bool state = ((value2 & mask) > 0);
-	  	    if(state == 1)
-	  	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
-	  	    else
-	  	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
-	  	    // Pulse the CLOCK pin so that the shift register receives the bit of data
-	  	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
-	  	    //HAL_Delay (1);
-	  	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
-	  	    mask >>= 1;
-	  	  }
+  mask = 0b10000000;
+  for (int i = 0; i < 8; i++)
+  {
+    // Send one bit of data
+    bool state = ((value2 & mask) > 0);
+    if (state == 1)
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
+    else
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
+    // Pulse the CLOCK pin so that the shift register receives the bit of data
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
+    //HAL_Delay (1);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
+    mask >>= 1;
+  }
 
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET); // Latch HIGH
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET); // Latch HIGH
 }
-
 
 void WriteToShiftRegInvers(uint8_t value, uint8_t value2)
 {
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET); // Latch LOW
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET); // Latch LOW
 
-	// Send Data
-	uint8_t mask = 0b10000000;
-	  for (int i = 0; i < 8; i++) {
-	    // Send one bit of data
-	    bool state = ((value & mask) > 0);
-	    if(state == 1)
-	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
-	    else
-	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
-	    // Pulse the CLOCK pin so that the shift register receives the bit of data
-	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
-	    //HAL_Delay (1);
-	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
-	    mask >>= 1;
-	  }
+  // Send Data
+  uint8_t mask = 0b10000000;
+  for (int i = 0; i < 8; i++)
+  {
+    // Send one bit of data
+    bool state = ((value & mask) > 0);
+    if (state == 1)
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
+    else
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
+    // Pulse the CLOCK pin so that the shift register receives the bit of data
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
+    //HAL_Delay (1);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
+    mask >>= 1;
+  }
 
-	  mask = 0b10000000;
-	  	  for (int i = 0; i < 8; i++) {
-	  	    // Send one bit of data
-	  	    bool state = ((value2 & mask) > 0);
-	  	    if(state == 1)
-	  	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
-	  	    else
-	  	    	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
-	  	    // Pulse the CLOCK pin so that the shift register receives the bit of data
-	  	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
-	  	    //HAL_Delay (1);
-	  	    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
-	  	    mask >>= 1;
-	  	  }
+  mask = 0b10000000;
+  for (int i = 0; i < 8; i++)
+  {
+    // Send one bit of data
+    bool state = ((value2 & mask) > 0);
+    if (state == 1)
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
+    else
+      HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
+    // Pulse the CLOCK pin so that the shift register receives the bit of data
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
+    //HAL_Delay (1);
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
+    mask >>= 1;
+  }
 
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET); // Latch HIGH
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET); // Latch HIGH
 }
 
 void WriteToShiftRegBit(uint8_t bit)
 {
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET); // Latch LOW
-	if(bit == 1)
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
-	else
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_RESET); // Latch LOW
+  if (bit == 1)
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_SET); // Send 1
+  else
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_6, GPIO_PIN_RESET); // Send 0
 
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
-	//HAL_Delay (1);
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_SET); // Clock High
+  //HAL_Delay (1);
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, GPIO_PIN_RESET); // Clock LOW
 
-	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET); // Latch HIGH
+  HAL_GPIO_WritePin(GPIOB, GPIO_PIN_4, GPIO_PIN_SET); // Latch HIGH
 }
 
 uint32_t MAP(uint32_t au32_IN, uint32_t au32_INmin, uint32_t au32_INmax, uint32_t au32_OUTmin, uint32_t au32_OUTmax)
 {
-    return ((((au32_IN - au32_INmin)*(au32_OUTmax - au32_OUTmin))/(au32_INmax - au32_INmin)) + au32_OUTmin);
+  return ((((au32_IN - au32_INmin) * (au32_OUTmax - au32_OUTmin)) / (au32_INmax - au32_INmin)) + au32_OUTmin);
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
 {
-	Read = 1;
-	Write = 0;
+  Read = 1;
+  Write = -1;
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	Read = 0;
-	Write = 1;
+  Read = -1;
+  Write = 1;
 }
 /* USER CODE END PFP */
 
@@ -185,44 +189,23 @@ int MPU_INITIALIZE_COUNT = 0;
 int time;
 
 // Uart Rx Data Container and Receive variables
-uint8_t ReceiveMode = 1; // 0 for single Data 1 for Specific Servo mode > 1 for no Receive
+uint8_t ReceiveMode = 0; // 0 for single Data 1 for Specific Servo mode
 uint8_t RXData;
 uint8_t RXDataS[2];
 uint8_t ServoData[5] = {25};
 uint8_t RX_Counter = 0;
 
-
 void ReadMPU()
 {
-	// Read all MPU, max 16 write full shift register
-		  /*
-		  for(int i = 0; i < MPU_COUNT; i++)
-		  {
-			  if(i < 8)
-			  {
-				  WriteToShiftRegInvers(0,pow(2,i));
-				  MPU6050_Read_All(&hi2c1, &MPU6050[i]);
-				  //MPU6050_Read_Accel(&hi2c1, &MPU6050[i]);
-				  //MPU6050_Read_Gyro(&hi2c1, &MPU6050[i]);
-			  }else{
-				  WriteToShiftRegInvers(pow(2,i - 8),0);
-				  MPU6050_Read_All(&hi2c1, &MPU6050[i]);
-				  //MPU6050_Read_Accel(&hi2c1, &MPU6050[i]);
-				  //MPU6050_Read_Gyro(&hi2c1, &MPU6050[i]);
-			  }
-		  }
-		  */
-		  // Read all MPU new Shift Reg code
-		  WriteToShiftRegBit(0);
-		  for(int i = 0; i < MPU_COUNT; i++)
-		  {
-			  HAL_Delay(16);
-			  MPU6050_Read_All(&hi2c1, &MPU6050[i]);
-			  WriteToShiftRegBit(1);
-		  }
-		  WriteToShiftRegInvers(0,0);
+  // Read all MPU new Shift Reg code
+  WriteToShiftRegBit(0);
+  for (int i = 0; i < MPU_COUNT; i++)
+  {
+    MPU6050_Read_All(&hi2c1, &MPU6050[i]);
+    WriteToShiftRegBit(1);
+  }
+  WriteToShiftRegInvers(0, 0);
 }
-
 
 /* USER CODE END 0 */
 
@@ -261,27 +244,27 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // Initialize all MPU max 16
-  WriteToShiftRegInvers(0,0);
+  WriteToShiftRegInvers(0, 0);
   WriteToShiftRegBit(0);
-  for(int i = 0; i < MPU_COUNT; i++)
+  for (int i = 0; i < MPU_COUNT; i++)
   {
-	  MPU6050[i].KalmanX.Q_angle = 0.001f;
-	  MPU6050[i].KalmanX.Q_bias = 0.003f;
-	  MPU6050[i].KalmanX.R_measure = 0.03f;
+    MPU6050[i].KalmanX.Q_angle = 0.001f;
+    MPU6050[i].KalmanX.Q_bias = 0.003f;
+    MPU6050[i].KalmanX.R_measure = 0.03f;
 
-	  MPU6050[i].KalmanY.Q_angle = 0.001f;
-	  MPU6050[i].KalmanY.Q_bias = 0.003f;
-	  MPU6050[i].KalmanY.R_measure = 0.03f;
+    MPU6050[i].KalmanY.Q_angle = 0.001f;
+    MPU6050[i].KalmanY.Q_bias = 0.003f;
+    MPU6050[i].KalmanY.R_measure = 0.03f;
 
-	  HAL_Delay(100);
-	  while(MPU6050_Init(&hi2c1) != 1)
-	  {
-		  HAL_Delay(100);
-	  }
-	  WriteToShiftRegBit(1);
-	  MPU_INITIALIZE_COUNT++;
+    HAL_Delay(100);
+    while (MPU6050_Init(&hi2c1) != 0)
+    {
+      HAL_Delay(100);
+    }
+    WriteToShiftRegBit(1);
+    MPU_INITIALIZE_COUNT++;
   }
-  WriteToShiftRegInvers(0,0);
+  WriteToShiftRegInvers(0, 0);
 
   // Initialize PWM For Servo
   // 1
@@ -305,84 +288,85 @@ int main(void)
 
   while (1)
   {
-	  time1 = HAL_GetTick();
-	  // Read Gyrosensors
-	  ReadMPU();
+    time1 = HAL_GetTick();
+    // Read Gyrosensors
+    ReadMPU();
+    //HAL_Delay(5);
 
-	  // Send Data to PC
-	  if(Write == 1)
-	  {
+    // Send Data to PC
+    if (Write == 1 || Overwrite)
+    {
       char buffer[sizeof(float)];
-	  memcpy(buffer,&MPU6050[0].KalmanAngleX,sizeof(float));
-	  HAL_UART_Transmit_IT(&huart2,buffer,sizeof(float));
-	  }
+      memcpy(buffer, &MPU6050[0].KalmanAngleX, sizeof(float));
+      HAL_UART_Transmit_IT(&huart2, buffer, sizeof(float));
+    }
 
-	  // Receive Data
-	  if(Read == 1)
-	  {
-		  // Data = Position[Degrees: 0 - 180]
-		  // Receive Data from PC		One number at a Time : 10 then send 20 then send 30 then send 40 then send 50
-		  if(ReceiveMode == 0)
-		  {
-			  if(HAL_UART_Receive_DMA(&huart2,&RXData,1) == HAL_OK)
-			  {
-				  //Update Servo from Degrees to DutyCycle
-				  if(RXData != 255) // 255 = Free Rotation of Servo
-				  {
-					  if(RXData <= 180 && RXData >= 0 )
-					  {
-						  ServoData[RX_Counter] = MAP(RXData,0,180,25,125); // Remap from Degrees to Duty Cycle
-					  }
-				  }
-				  else
-				  {
-					  ServoData[RX_Counter] = 0;
-				  }
+    // Receive Data
+    if (Read == 1 || Overwrite == 1)
+    {
+      // Data = Position[Degrees: 0 - 180]
+      // Receive Data from PC		One number at a Time : 10 then send 20 then send 30 then send 40 then send 50
+      if (ReceiveMode == 0)
+      {
+        if (HAL_UART_Receive_DMA(&huart2, &RXData, 1) == HAL_OK)
+        {
+          //Update Servo from Degrees to DutyCycle
+          if (RXData != 255) // 255 = Free Rotation of Servo
+          {
+            if (RXData <= 180 && RXData >= 0)
+            {
+              ServoData[RX_Counter] = MAP(RXData, 0, 180, 25, 125); // Remap from Degrees to Duty Cycle
+            }
+          }
+          else
+          {
+            ServoData[RX_Counter] = 0;
+          }
 
-				  RX_Counter++;
-				  if(RX_Counter >= 5)
-					  RX_Counter = 0;
-			  }
-		  }
+          RX_Counter++;
+          if (RX_Counter >= 5)
+            RX_Counter = 0;
+        }
+      }
 
-		  // Data = Servonumber[int: 1 - 5] Position[Degrees: 0 - 180]
-		  // Receive Data from Pc with a Servo in mind : 1 59 ,2 30 ,5 40 ,1 80
-		  if(ReceiveMode == 1)
-		  {
-			  if(HAL_UART_Receive_DMA(&huart2,&RXDataS,2) == HAL_OK)
-			  {
-				  //Update Servo from Degrees to DutyCycle
-				  if(RXDataS[1] != 255) // 255 = Free Rotation of Servo
-				  {
-					  if(RXDataS[1] <= 180 && RXDataS[1] >= 0 )
-					  {
-						  ServoData[RXDataS[0] + 1] = MAP(RXDataS[1],0,180,25,125); // Remap from Degrees to Duty Cycle
-					  }
-				  }
-				  else
-				  {
-					  ServoData[RXDataS[0] + 1] = 0;
-				  }
-			  }
-		  }
-	  }
-	  // I dont know if we need it, Flashes the RX buffer of the STM Chip
-      __HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
+      // Data = Servonumber[int: 1 - 5] Position[Degrees: 0 - 180]
+      // Receive Data from Pc with a Servo in mind : 1 59 ,2 30 ,5 40 ,1 80
+      if (ReceiveMode == 1)
+      {
+        if (HAL_UART_Receive_DMA(&huart2, &RXDataS, 2) == HAL_OK)
+        {
+          //Update Servo from Degrees to DutyCycle
+          if (RXDataS[1] != 255) // 255 = Free Rotation of Servo
+          {
+            if (RXDataS[1] <= 180 && RXDataS[1] >= 0)
+            {
+              ServoData[RXDataS[0] + 1] = MAP(RXDataS[1], 0, 180, 25, 125); // Remap from Degrees to Duty Cycle
+            }
+          }
+          else
+          {
+            ServoData[RXDataS[0] + 1] = 0;
+          }
+        }
+      }
+    }
+    // I dont know if we need it, Flashes the RX buffer of the STM Chip
+    __HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
 
-      // Write Servo Duty Cycles 25 = 0; 125 = 180
-      htim1.Instance->CCR1 = ServoData[0];
-      htim1.Instance->CCR2 = ServoData[1];
-      htim1.Instance->CCR3 = ServoData[2];
-      htim1.Instance->CCR4 = ServoData[3];
-      htim4.Instance->CCR2 = ServoData[4];
+    // Write Servo Duty Cycles 25 = 0; 125 = 180
+    ServoData[0] = MAP(MPU6050[1].KalmanAngleX + 90, 0, 180, 25, 125);
+    htim1.Instance->CCR1 = ServoData[0];
+    htim1.Instance->CCR2 = ServoData[1];
+    htim1.Instance->CCR3 = ServoData[2];
+    htim1.Instance->CCR4 = ServoData[3];
+    htim4.Instance->CCR2 = ServoData[4];
 
-      time2 = HAL_GetTick();
+    time2 = HAL_GetTick();
 
-      time = time2 - time1;
+    time = time2 - time1;
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-
   }
   /* USER CODE END 3 */
 }
@@ -419,8 +403,7 @@ void SystemClock_Config(void)
 
   /** Initializes the CPU, AHB and APB buses clocks
   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV8;
@@ -477,7 +460,6 @@ static void MX_I2C1_Init(void)
   /* USER CODE BEGIN I2C1_Init 2 */
 
   /* USER CODE END I2C1_Init 2 */
-
 }
 
 /**
@@ -572,7 +554,6 @@ static void MX_TIM1_Init(void)
 
   /* USER CODE END TIM1_Init 2 */
   HAL_TIM_MspPostInit(&htim1);
-
 }
 
 /**
@@ -631,7 +612,6 @@ static void MX_TIM4_Init(void)
 
   /* USER CODE END TIM4_Init 2 */
   HAL_TIM_MspPostInit(&htim4);
-
 }
 
 /**
@@ -679,7 +659,6 @@ static void MX_USART2_UART_Init(void)
   /* USER CODE BEGIN USART2_Init 2 */
 
   /* USER CODE END USART2_Init 2 */
-
 }
 
 /**
@@ -696,7 +675,6 @@ static void MX_DMA_Init(void)
   /* DMA1_Channel1_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(DMA1_Channel1_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-
 }
 
 /**
@@ -714,15 +692,14 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, Latch_Pin|SHCLK_Pin|DS_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, Latch_Pin | SHCLK_Pin | DS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : Latch_Pin SHCLK_Pin DS_Pin */
-  GPIO_InitStruct.Pin = Latch_Pin|SHCLK_Pin|DS_Pin;
+  GPIO_InitStruct.Pin = Latch_Pin | SHCLK_Pin | DS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-
 }
 
 /* USER CODE BEGIN 4 */
@@ -740,12 +717,11 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
-
   }
   /* USER CODE END Error_Handler_Debug */
 }
 
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
