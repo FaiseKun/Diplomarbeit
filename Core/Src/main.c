@@ -52,7 +52,7 @@ UART_HandleTypeDef huart2;
 DMA_HandleTypeDef hdma_usart2_rx;
 
 /* USER CODE BEGIN PV */
-#define MPU_COUNT 2
+#define MPU_COUNT 0
 uint8_t Read = -1;
 uint8_t Write = 1;
 uint8_t Overwrite = 1;
@@ -189,7 +189,7 @@ int MPU_INITIALIZE_COUNT = 0;
 int time;
 
 // Uart Rx Data Container and Receive variables
-uint8_t ReceiveMode = 0; // 0 for single Data 1 for Specific Servo mode
+uint8_t ReceiveMode = 1; // 0 for single Data 1 for Specific Servo mode
 uint8_t RXData;
 uint8_t RXDataS[2];
 uint8_t ServoData[5] = {25};
@@ -221,7 +221,7 @@ int main(void)
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
-  HAL_Init();
+	HAL_Init();
 
   /* USER CODE BEGIN Init */
 
@@ -256,13 +256,16 @@ int main(void)
     MPU6050[i].KalmanY.Q_bias = 0.003f;
     MPU6050[i].KalmanY.R_measure = 0.03f;
 
-    HAL_Delay(100);
     while (MPU6050_Init(&hi2c1) != 0)
     {
-      HAL_Delay(100);
+    	HAL_Delay(100);
     }
+
+    /*
+    if(MPU6050_Init(&hi2c1) == 0)
+        MPU_INITIALIZE_COUNT++;
+    */
     WriteToShiftRegBit(1);
-    MPU_INITIALIZE_COUNT++;
   }
   WriteToShiftRegInvers(0, 0);
 
@@ -297,8 +300,9 @@ int main(void)
     if (Write == 1 || Overwrite)
     {
       char buffer[sizeof(float)];
+      uint8_t hello = "Hi";
       memcpy(buffer, &MPU6050[0].KalmanAngleX, sizeof(float));
-      HAL_UART_Transmit_IT(&huart2, buffer, sizeof(float));
+      HAL_UART_Transmit_IT(&huart2, hello, sizeof(hello));
     }
 
     // Receive Data
@@ -340,12 +344,12 @@ int main(void)
           {
             if (RXDataS[1] <= 180 && RXDataS[1] >= 0)
             {
-              ServoData[RXDataS[0] + 1] = MAP(RXDataS[1], 0, 180, 25, 125); // Remap from Degrees to Duty Cycle
+              ServoData[RXDataS[0]] = MAP(RXDataS[1], 0, 180, 25, 125); // Remap from Degrees to Duty Cycle
             }
           }
           else
           {
-            ServoData[RXDataS[0] + 1] = 0;
+            ServoData[RXDataS[0]] = 0;
           }
         }
       }
@@ -354,7 +358,7 @@ int main(void)
     __HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
 
     // Write Servo Duty Cycles 25 = 0; 125 = 180
-    ServoData[0] = MAP(MPU6050[1].KalmanAngleX + 90, 0, 180, 25, 125);
+    //ServoData[0] = MAP(MPU6050[1].KalmanAngleX + 90, 0, 180, 25, 125);
     htim1.Instance->CCR1 = ServoData[0];
     htim1.Instance->CCR2 = ServoData[1];
     htim1.Instance->CCR3 = ServoData[2];
