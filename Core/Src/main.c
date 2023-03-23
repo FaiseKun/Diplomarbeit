@@ -55,7 +55,7 @@ DMA_HandleTypeDef hdma_usart2_rx;
 #define MPU_COUNT 0
 uint8_t Read = -1;
 uint8_t Write = 1;
-uint8_t Overwrite = 1;
+uint8_t Overwrite = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -351,11 +351,13 @@ int main(void)
           {
             ServoData[RXDataS[0]] = 0;
           }
+
+          __HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
         }
       }
     }
     // I dont know if we need it, Flashes the RX buffer of the STM Chip
-    __HAL_UART_SEND_REQ(&huart2, UART_RXDATA_FLUSH_REQUEST);
+
 
     // Write Servo Duty Cycles 25 = 0; 125 = 180
     //ServoData[0] = MAP(MPU6050[1].KalmanAngleX + 90, 0, 180, 25, 125);
